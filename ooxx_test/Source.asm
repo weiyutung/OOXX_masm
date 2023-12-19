@@ -41,12 +41,13 @@ INCLUDE Irvine32.inc
     ;輸出字串
 	pgofirst BYTE " goes first!", 0ah, 0dh, 0
     whos BYTE "It's ", 0
-    plzenter BYTE " turn , Please enter (row, col): ", 0
+    turn BYTE " turn", 0ah, 0dh, 0
+    plzrow BYTE "Please enter row : ", 0
+    plzcol BYTE "Please enter col : ", 0
 
     ;輸入row col
-	row DWORD ? 
-	col DWORD ? 
-    rowcol db 3 dup (?) 
+	row SDWORD ? 
+	col SDWORD ? 
 
     ; reset_board
     board BYTE 100 DUP (0)
@@ -98,6 +99,7 @@ main PROC
 	call WriteString
 
     call make_move               ; (who's turn) 輸出 name1 or name2 + " turn , Please enter (row, col): "
+    call Crlf                    ; 印空白行
 
     ; 更新棋盤
     ;
@@ -226,52 +228,16 @@ make_move PROC
     L2:
         call WriteString
         pop eax                           ; ~輪流輸出玩家名稱
+
+    mov edx, OFFSET turn                  ; " turn ,"
+	call WriteString
     
     call get_player_input
 
-    ; 從input_buffer中提取行和列
-    ;mov esi, [rowcol]      ; 行
-    ;mov eax,esi
-    ;call WriteDec
-    ;call Crlf                    ; 印空白行
-    ;mov edi, [rowcol + 2]      ; 列
-    ;mov eax, edi
-    ;call WriteDec
-
-
-    ; 讀取輸入
-    mov eax, OFFSET rowcol
-    call ReadString
-
-    ; 將字符轉換為整數
-    mov al, rowcol
-    sub al, '0'
-    mov ah, 0
-    movzx eax, ax
-    mov ebx, eax
-
-    ; 跳過空格
-    inc edx
-
-    ; 讀取第二個數字
-    mov eax, OFFSET rowcol + 2
-    call ReadString
-
-    ; 將字符轉換為整數
-    mov al, rowcol + 2
-    sub al, '0'
-    mov ah, 0
-    movzx eax, ax
-
-    ; 加上第一個數字
-    add eax, ebx
-
-    ; 顯示結果
-    call WriteDec
-    call Crlf
-
-
     ; 檢查行和列是否在有效範圍內
+    mov esi, row
+    mov edi, col
+
     cmp esi, 0
     jl  invalid_move
     cmp esi, BOARD_SIZE
@@ -309,13 +275,27 @@ make_move ENDP
 
 get_player_input PROC
 
-        mov edx, OFFSET plzenter       ; "Please enter (row, col): "
+        mov edx, OFFSET plzrow       ; "Please enter row : "
         call WriteString
 
-        ; Read user input
-        ;mov edx, OFFSET rowcol
-        ;mov ecx, SIZEOF rowcol
-        ;call ReadString
+        ; 讀取輸入
+        call ReadDec
+        mov row,eax
+
+        ; 顯示結果
+        call WriteDec
+        call Crlf
+
+        mov edx, OFFSET plzcol       ; "Please enter col : "
+        call WriteString
+
+        ; 讀取第二個數字
+        call ReadDec
+        mov col,eax
+
+        ; 顯示結果
+        call WriteDec
+        call Crlf
 
         ret
 
