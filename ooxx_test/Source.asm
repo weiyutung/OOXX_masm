@@ -41,8 +41,8 @@ INCLUDE Irvine32.inc
     ;輸出字串
 	pgofirst BYTE " goes first!", 0ah, 0dh, 0
     whos BYTE "It's ", 0
-    turn BYTE " turn ,", 0
-	plzenter BYTE "Please enter (row, col): ", 0
+    ;turn BYTE "", 0
+    plzenter BYTE " turn , Please enter (row, col): ", 0
 
     ;輸入row col
 	row DWORD ? 
@@ -55,27 +55,28 @@ INCLUDE Irvine32.inc
     currentPlayer dd ?
     line DWORD 0
 
+
 .code
 main PROC
-    mov edx, OFFSET enter1
+    mov edx, OFFSET enter1        ; "Enter Player 1's name: "
 	call WriteString
 
-	mov edx,OFFSET name1 
+	mov edx,OFFSET name1          ; 輸入 name1
 	mov ecx,SIZEOF name1
 	call ReadString 
 
-	mov edx, OFFSET enter2
+	mov edx, OFFSET enter2        ; "Enter Player 2's name: "
 	call WriteString
 
-	mov edx,OFFSET name2 
+	mov edx,OFFSET name2          ; 輸入 name2
 	mov ecx,SIZEOF name2 
 	call ReadString 
 
-	call Crlf                ;印空白行
+	call Crlf                     ; 印空白行
 
-	; 輸出誰go first
-	; 當前玩家索引
-    call random_player
+    call reset_board              ; 重置 board  //待確認是否正確
+
+    call random_player            ; 輸出 誰 go first
     cmp eax, 1
     je L1
     mov edx, OFFSET name2
@@ -89,35 +90,20 @@ main PROC
     call WriteString
     mov currentPlayer, eax
 
-    ;reset_board   待確認是否正確
-    call reset_board
-
-
-	; 印一個棋盤
-	;
-	; 顯示當前狀態
-    call display_board
-	;
-	;
+    call display_board           ; 輸出 一個board  (顯示當前狀態)
 	
-	call Crlf                ;印空白行
+	call Crlf                    ; 印空白行
 
-    
-
-    mov edx, OFFSET whos
+    mov edx, OFFSET whos         ; "It's "
 	call WriteString
 
-    ; who's turn
-    ; call whos_turn
-    call make_move
+    call make_move               ; (who's turn) 輸出 name1 or name2 
 
-    mov edx, OFFSET turn
-	call WriteString
+    ;mov edx, OFFSET turn         ; " turn , "
+	;call WriteString
 
-	mov edx, OFFSET plzenter
-	call WriteString
 
-    call Crlf                ;印空白行
+    call Crlf                    ; 印空白行
               
 
     
@@ -206,27 +192,34 @@ display_board ENDP
 
 
 make_move PROC
-    push eax
+
+    push eax                               ; 輪流輸出玩家名稱~
     mov eax, line
     cmp eax, 0
     je CmpPlayer
     not currentPlayer
 
     CmpPlayer:
-    inc line
-    pop eax
-    ; 輪流輸出玩家名稱
-    push eax
-    mov eax, currentPlayer
-    cmp eax, 0
-    je L1
-    mov edx, OFFSET name1
-    jmp L2
+        inc line
+        pop eax                             
+    
+        push eax                           
+        mov eax, currentPlayer
+        cmp eax, 0
+        je L1
+        mov edx, OFFSET name1
+        jmp L2
     L1:
         mov edx, OFFSET name2
     L2:
         call WriteString
-    pop eax
+        pop eax                           ; ~輪流輸出玩家名稱
+    
+    call get_player_input
+
+    ; 從input_buffer中提取行和列
+    mov esi, [row]      ; 行
+    mov edi, [col]      ; 列
 
     ; 檢查行和列是否在有效範圍內
     cmp esi, 0
@@ -263,6 +256,25 @@ make_move_done:
 
 make_move ENDP
 
+
+get_player_input PROC
+        ;mov edx,OFFSET name2          ; 輸入 name2
+	    ;mov ecx,SIZEOF name2 
+	    ;call ReadString 
+
+        mov edx, OFFSET plzenter       ; "Please enter (row, col): "
+        call WriteString
+
+        ; Read user input
+        mov edx, OFFSET row
+        mov ecx, 4
+        call ReadString
+
+        mov edx, OFFSET col
+        mov ecx, 4
+        call ReadString
+
+get_player_input ENDP
 
 
 
