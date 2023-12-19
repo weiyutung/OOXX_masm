@@ -17,17 +17,17 @@ INCLUDE Irvine32.inc
     ; display_board
     row1 BYTE "   0   1   2 ", 0dh, 0ah, 0
     row20 BYTE "0  ", 0
-    row21 BYTE " | ", 0 
-    row22 BYTE " | ", 0
+    row21 BYTE "  | ", 0 
+    row22 BYTE "  | ", 0
     row23 BYTE "  ", 0dh, 0ah, 0
     rowLine BYTE "  ---+---+---", 0dh, 0ah, 0
     row40 BYTE "1  ", 0
-    row41 BYTE " | ", 0 
-    row42 BYTE " | ", 0
+    row41 BYTE "  | ", 0 
+    row42 BYTE "  | ", 0
     row43 BYTE "  ", 0dh, 0ah, 0
     row50 BYTE "2  ", 0
-    row51 BYTE " | ", 0 
-    row52 BYTE " | ", 0
+    row51 BYTE "  | ", 0 
+    row52 BYTE "  | ", 0
     row53 BYTE "  ", 0dh, 0ah, 0
 
     ;輸出字串
@@ -47,6 +47,7 @@ INCLUDE Irvine32.inc
     ;輸入row col
 	row DWORD ? 
 	col DWORD ? 
+    rowcol DWORD ? 
 
     ; reset_board
     board BYTE 100 DUP (0)
@@ -97,7 +98,7 @@ main PROC
     mov edx, OFFSET whos         ; "It's "
 	call WriteString
 
-    call make_move               ; (who's turn) 輸出 name1 or name2 
+    call make_move               ; (who's turn) 輸出 name1 or name2 + " turn , Please enter (row, col): "
 
     ;mov edx, OFFSET turn         ; " turn , "
 	;call WriteString
@@ -218,8 +219,13 @@ make_move PROC
     call get_player_input
 
     ; 從input_buffer中提取行和列
-    mov esi, [row]      ; 行
-    mov edi, [col]      ; 列
+    mov esi, [rowcol]      ; 行
+    mov eax,esi
+    call WriteDec
+    call Crlf                    ; 印空白行
+    mov eax, [rowcol + 4]
+    call WriteDec
+    mov edi, [rowcol + 4]      ; 列
 
     ; 檢查行和列是否在有效範圍內
     cmp esi, 0
@@ -258,21 +264,16 @@ make_move ENDP
 
 
 get_player_input PROC
-        ;mov edx,OFFSET name2          ; 輸入 name2
-	    ;mov ecx,SIZEOF name2 
-	    ;call ReadString 
 
         mov edx, OFFSET plzenter       ; "Please enter (row, col): "
         call WriteString
 
         ; Read user input
-        mov edx, OFFSET row
-        mov ecx, 4
+        mov edx, OFFSET rowcol
+        mov ecx, SIZEOF rowcol
         call ReadString
 
-        mov edx, OFFSET col
-        mov ecx, 4
-        call ReadString
+        ret
 
 get_player_input ENDP
 
