@@ -41,13 +41,12 @@ INCLUDE Irvine32.inc
     ;輸出字串
 	pgofirst BYTE " goes first!", 0ah, 0dh, 0
     whos BYTE "It's ", 0
-    ;turn BYTE "", 0
     plzenter BYTE " turn , Please enter (row, col): ", 0
 
     ;輸入row col
 	row DWORD ? 
 	col DWORD ? 
-    rowcol DWORD ? 
+    rowcol db 3 dup (?) 
 
     ; reset_board
     board BYTE 100 DUP (0)
@@ -100,8 +99,20 @@ main PROC
 
     call make_move               ; (who's turn) 輸出 name1 or name2 + " turn , Please enter (row, col): "
 
-    ;mov edx, OFFSET turn         ; " turn , "
-	;call WriteString
+    ; 更新棋盤
+    ;
+    ;
+    ;
+
+    ; check win
+
+
+    ; check 平手
+
+    ; check drawnextplayer
+
+
+    ;displayOverallResults() 
 
 
     call Crlf                    ; 印空白行
@@ -219,13 +230,46 @@ make_move PROC
     call get_player_input
 
     ; 從input_buffer中提取行和列
-    mov esi, [rowcol]      ; 行
-    mov eax,esi
+    ;mov esi, [rowcol]      ; 行
+    ;mov eax,esi
+    ;call WriteDec
+    ;call Crlf                    ; 印空白行
+    ;mov edi, [rowcol + 2]      ; 列
+    ;mov eax, edi
+    ;call WriteDec
+
+
+    ; 讀取輸入
+    mov eax, OFFSET rowcol
+    call ReadString
+
+    ; 將字符轉換為整數
+    mov al, rowcol
+    sub al, '0'
+    mov ah, 0
+    movzx eax, ax
+    mov ebx, eax
+
+    ; 跳過空格
+    inc edx
+
+    ; 讀取第二個數字
+    mov eax, OFFSET rowcol + 2
+    call ReadString
+
+    ; 將字符轉換為整數
+    mov al, rowcol + 2
+    sub al, '0'
+    mov ah, 0
+    movzx eax, ax
+
+    ; 加上第一個數字
+    add eax, ebx
+
+    ; 顯示結果
     call WriteDec
-    call Crlf                    ; 印空白行
-    mov eax, [rowcol + 4]
-    call WriteDec
-    mov edi, [rowcol + 4]      ; 列
+    call Crlf
+
 
     ; 檢查行和列是否在有效範圍內
     cmp esi, 0
@@ -269,9 +313,9 @@ get_player_input PROC
         call WriteString
 
         ; Read user input
-        mov edx, OFFSET rowcol
-        mov ecx, SIZEOF rowcol
-        call ReadString
+        ;mov edx, OFFSET rowcol
+        ;mov ecx, SIZEOF rowcol
+        ;call ReadString
 
         ret
 
