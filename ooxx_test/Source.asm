@@ -15,20 +15,15 @@ INCLUDE Irvine32.inc
     forks BYTE "X", 0dh, 0ah, 0
 
     ; display_board
-    row1 BYTE "   0   1   2 ", 0dh, 0ah, 0
+    row0 BYTE "   0   1   2 ", 0dh, 0ah, 0
     row20 BYTE "0  ", 0
-    row21 BYTE "  | ", 0 
-    row22 BYTE "  | ", 0
-    row23 BYTE "  ", 0dh, 0ah, 0
+    row| BYTE " | ", 0 
     rowLine BYTE "  ---+---+---", 0dh, 0ah, 0
-    row40 BYTE "1  ", 0
-    row41 BYTE "  | ", 0 
-    row42 BYTE "  | ", 0
-    row43 BYTE "  ", 0dh, 0ah, 0
-    row50 BYTE "2  ", 0
-    row51 BYTE "  | ", 0 
-    row52 BYTE "  | ", 0
-    row53 BYTE "  ", 0dh, 0ah, 0
+    col1 BYTE "1  ", 0
+    col2 BYTE "2  ", 0
+    blank BYTE " ", 0
+    circle BYTE "O", 0
+    cross BYTE "X", 0
 
     ;輸出字串
     enter1 BYTE "Enter Player 1's name: ", 0
@@ -55,6 +50,8 @@ INCLUDE Irvine32.inc
     ; whos_turn , make_move
     currentPlayer dd ?
     line DWORD 0
+
+    arr DWORD 9 DUP (0)
 
 
 .code
@@ -167,16 +164,23 @@ whos_turn ENDP
 
 
 display_board PROC
+    mov ecx, 0
+L3:
+    cmp esi, 0
+    je space
+    jmp OX
+
+space:
     mov edx, OFFSET row1
     call WriteString
+
     mov edx, OFFSET row20
     call WriteString
     mov edx, OFFSET row21
     call WriteString
     mov edx, OFFSET row22
     call WriteString
-    mov edx, OFFSET row23
-    call WriteString
+
 
     mov edx, OFFSET rowLine
     call WriteString
@@ -206,7 +210,6 @@ display_board ENDP
 
 
 make_move PROC
-
     push eax                               ; 輪流輸出玩家名稱~
     mov eax, line
     cmp eax, 0
@@ -234,41 +237,34 @@ make_move PROC
     
     call get_player_input
 
-    ; 檢查行和列是否在有效範圍內
-    mov esi, row
-    mov edi, col
+    mov esi, OFFSET arr
+    mov eax, row
+    shl eax, 4
+    add esi, eax
+    mov eax, col
+    shl eax, 2
+    add esi, eax
+    mov [esi], 1
 
-    cmp esi, 0
-    jl  invalid_move
-    cmp esi, BOARD_SIZE
-    jge invalid_move
+    mov eax, 0
+    Li:
+        mov ecx, 0
+        cmp 
+    Lj:
+        ;輸出
+        call display_board
 
-    cmp edi, 0
-    jl  invalid_move
-    cmp edi, BOARD_SIZE
-    jge invalid_move
-
-    ; 計算在一維數組中的索引
-    mov eax, esi            ; eax = row
-    imul eax, BOARD_SIZE    ; eax = row * BOARD_SIZE
-    add eax, edi            ; eax = row * BOARD_SIZE + col
-
-    ; 檢查該位置是否為空（Player::NONE）
-    mov edx, [ecx + eax]    ; edx = current cell
-    cmp edx, 0
-    jne invalid_move        ; 非空，無效移動
-
-    ; 更新棋盤
-    mov [ecx + eax], ebx    ; 將 currentPlayer 放入指定位置
-
-    jmp make_move_done
+        inc ecx
+        cmp ecx, 3
+        jbe  Lj
+        inc eax
+        jmp L1
 
 
-invalid_move:
-    ; 無效移動的處理
 
-make_move_done:
-    ret
+
+
+
 
 make_move ENDP
 
@@ -279,23 +275,16 @@ get_player_input PROC
         call WriteString
 
         ; 讀取輸入
-        call ReadDec
+        call ReadDec                 ; 輸入 row
         mov row,eax
-
-        ; 顯示結果
-        call WriteDec
-        call Crlf
 
         mov edx, OFFSET plzcol       ; "Please enter col : "
         call WriteString
 
         ; 讀取第二個數字
-        call ReadDec
+        call ReadDec                 ; 輸入 col
         mov col,eax
 
-        ; 顯示結果
-        call WriteDec
-        call Crlf
 
         ret
 
